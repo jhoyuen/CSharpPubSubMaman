@@ -21,5 +21,11 @@ public async Task Post([FromBody] WeatherForecast weatherForecast)
 }
 ```
 
+## JPM-2: Setup SNS Subscriber using protocol `Email-JSON`
+- Create a new `SNS Subscription` for above topic in AWS
+    - Choose a protocol e.g `Email-JSON`. Enter an email address and confirm the subscription
+    - Make a call to the Weather Forecast Http Post action endpoint, this will trigger an email to be sent to the nominated email address
+
+
 ## Reference
 Tutorial origin from Rahul Nath Youtube Video course on AWS SNS - https://www.youtube.com/watch?v=XVQwgeUWXVY&list=PL01_mtrYJhC15qxPDg-BjKFNeuruqPGMI&index=1&t=211s&ab_channel=RahulNath
