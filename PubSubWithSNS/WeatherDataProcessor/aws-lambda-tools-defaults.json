@@ -14,13 +14,14 @@
     "function-timeout"     : 30,
     "function-handler"     : "WeatherDataProcessor::WeatherDataProcessor.Function::FunctionHandler",
     "framework"            : "net8.0",
-    "function-name"        : "csharppubsubmaman-pubsub-with-sns-weather-data",
+    "function-name"        : "csharppubsubmaman-pubsub-with-sns-weather-reports",
     "package-type"         : "Zip",
-    "function-role"        : "arn:aws:iam::150778450443:role/lambda_exec_csharppubsubmaman-pubsub-with-sns-weather-data",
+    "function-role"        : "arn:aws:iam::150778450443:role/lambda_exec_csharppubsubmaman-pubsub-with-sns-weather-reports",
     "function-architecture" : "x86_64",
     "function-subnets"      : "",
     "function-security-groups" : "",
     "tracing-mode"             : "PassThrough",
     "environment-variables"    : "",
-    "image-tag"                : ""
+    "image-tag"                : "",
+    "function-description"     : ""
 }
