@@ -3,6 +3,7 @@ using Amazon.Runtime;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 
 namespace Publisher.API.Controllers;
@@ -49,6 +50,17 @@ public class WeatherForecastController : ControllerBase
             Message = JsonSerializer.Serialize(weatherForecast),
             Subject = "Weather Update"
         };
+
+        request.MessageAttributes = new Dictionary<string, MessageAttributeValue>
+        {
+            { "Month", new MessageAttributeValue
+                {
+                    DataType = "String",
+                    StringValue = weatherForecast.Date.ToString("MMMM")
+                }
+            }
+        };
+
         var response = await client.PublishAsync(request);
     }
 }
