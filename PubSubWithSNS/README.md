@@ -75,6 +75,36 @@ request.MessageAttributes = new Dictionary<string, MessageAttributeValue>
     - Make a call to the `Weather Forecast Http Post action endpoint` with the `Month` set to `May`; Both lambda functions will trigger
     - Make a call to the `Weather Forecast Http Post action endpoint` with the `Month` set to `April`; ONLY the lambda function without the filter will trigger
 
+## JPM-5: Setup Dead Letter Queue (DLQ)
+- Whenever messages are missed after x number of retries, we can opt to send our messages to a `Dead Letter Queue`. It is an SQS queue that an Amazon SNS subscription can target for messages that cannot be delivered to subscribers successfully.
+- To do that, go to the `AWS SQS portal`
+    - Create a new queue
+    - Name it something relevant to a DLQ, something like `youtube-sns-dlq`
+- In `AWS SNS portal`, assign the SQS DLQ to our latest SNS subscription (SQS DLQ is assigned at the subscription level)
+    - Go to the subscription
+    - Select the `Redrive policy (dead-letter queue)` tab > Click `Edit`
+    - In the `Redrive policy (dead-letter queue) - optional` panel, enable the redrive policy
+    - Select the DLQ we have just created above and click `Save changes` - `IMPORTANT` - an error will popup stating that we need to grant permission for SNS topic to send messages to SQS queue and to create an `Amazon SQS queue policy`
+- Go back to the `AWS SQS portal` and edit the DLQ you created earlier
+    - In `Access Policy` panel, modify the policy as follows, introduce a new access policy statement below:
+    ```
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "sns.amazonaws.com"
+      },
+      "Action": "sqs:SendMessage",
+      "Resource": "arn:aws:sqs:ap-southeast-2:150778450443:youtube-sns-dlq",
+      "Condition": {
+        "ArnEquals": {
+          "aws:SourceArn": "arn:aws:sns:ap-southeast-2:150778450443:youtube-sns"
+        }
+      }
+    }
+    ```
+- To test the DLQ, delete the lambda function and make a call to the `Weather Forecast Http Post action endpoint`; the SNS topic will send a message to the DLQ because it fails to find the lambda function
+- `NOTE: if you need to test the lambda function again, please re-upload from VS`
+
 
 ## Reference
 Tutorial origin from `Rahul Nath` Youtube Video course on AWS SNS - https://www.youtube.com/watch?v=XVQwgeUWXVY&list=PL01_mtrYJhC15qxPDg-BjKFNeuruqPGMI&index=1&t=211s&ab_channel=RahulNath
