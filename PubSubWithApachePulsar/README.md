@@ -12,19 +12,53 @@ An example of how to code using a publisher subscriber architecture in Dotnet 8,
 - To install the `Pulsar C# client library`, follow these steps:
   - Create a dotnet project
   - Add the DotPulsar NuGet package via command `dotnet add package DotPulsar` OR via the NuGet Package Manager
-- Run the following `docker` command to create a Pulsar broker (example from - https://pulsar.apache.org/docs/4.0.x/deploy-docker/):
-```
-docker run -d -p 6650:6650 -p 8080:8080 --net=pulsar \
-  -e metadataStoreUrl=zk:zookeeper:2181 \
-  -e zookeeperServers=zookeeper:2181 \
-  -e clusterName=cluster-a \
-  -e managedLedgerDefaultEnsembleSize=1 \
-  -e managedLedgerDefaultWriteQuorum=1 \
-  -e managedLedgerDefaultAckQuorum=1 \
-  --name broker --hostname broker \
-  apachepulsar/pulsar-all:latest \
-  bash -c "bin/apply-config-from-env.py conf/broker.conf && exec bin/pulsar broker"
-```
+- Run the following `docker` commands to create Pulsar containers for each required component (example from - https://pulsar.apache.org/docs/4.0.x/deploy-docker/):
+  - `ZooKeeper` metadata container
+  ```
+  docker run -d -p 2181:2181 --net=pulsar \
+    -e metadataStoreUrl=zk:zookeeper:2181 \
+    -e cluster-name=cluster-a -e managedLedgerDefaultEnsembleSize=1 \
+    -e managedLedgerDefaultWriteQuorum=1 \
+    -e managedLedgerDefaultAckQuorum=1 \
+    -v $(pwd)/data/zookeeper:/pulsar/data/zookeeper \
+    --name zookeeper --hostname zookeeper \
+    apachepulsar/pulsar-all:latest \
+    bash -c "bin/apply-config-from-env.py conf/zookeeper.conf && bin/generate-zookeeper-config.sh conf/zookeeper.conf && exec bin/pulsar zookeeper"
+  ```
+  - `Cluster metadata initialization` container
+  ```
+  docker run --net=pulsar \
+    --name initialize-pulsar-cluster-metadata \
+    apachepulsar/pulsar-all:latest bash -c "bin/pulsar initialize-cluster-metadata \
+    --cluster cluster-a \
+    --zookeeper zookeeper:2181 \
+    --configuration-store zookeeper:2181 \
+    --web-service-url http://broker:8080 \
+    --broker-service-url pulsar://broker:6650"
+  ```
+  - `Bookie` container
+  ```
+  docker run -d -e clusterName=cluster-a \
+    -e zkServers=zookeeper:2181 --net=pulsar \
+    -e metadataServiceUri=metadata-store:zk:zookeeper:2181 \
+    -v $(pwd)/data/bookkeeper:/pulsar/data/bookkeeper \
+    --name bookie --hostname bookie \
+    apachepulsar/pulsar-all:latest \
+    bash -c "bin/apply-config-from-env.py conf/bookkeeper.conf && exec bin/pulsar bookie"
+  ```
+  - `Broker` container
+  ```
+  docker run -d -p 6650:6650 -p 8080:8080 --net=pulsar \
+    -e metadataStoreUrl=zk:zookeeper:2181 \
+    -e zookeeperServers=zookeeper:2181 \
+    -e clusterName=cluster-a \
+    -e managedLedgerDefaultEnsembleSize=1 \
+    -e managedLedgerDefaultWriteQuorum=1 \
+    -e managedLedgerDefaultAckQuorum=1 \
+    --name broker --hostname broker \
+    apachepulsar/pulsar-all:latest \
+    bash -c "bin/apply-config-from-env.py conf/broker.conf && exec bin/pulsar broker"
+  ```
 
 ## JPM-6: Setup Pulsar Client
 - Create the Pulsar client
